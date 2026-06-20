@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DocShare · upload & download PDF</title>
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background: #f6f9fc;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+
+    .card {
+      max-width: 1000px;
+      width: 100%;
+      background: #ffffff;
+      border-radius: 2rem;
+      box-shadow: 0 20px 40px -12px rgba(0, 20, 30, 0.25);
+      padding: 2.5rem 2.8rem;
+      transition: all 0.2s ease;
+    }
+
+    @media (max-width: 640px) {
+      .card {
+        padding: 1.8rem 1.2rem;
+      }
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .header i {
+      font-size: 2.2rem;
+      color: #1e4f8a;
+      background: #e5eff9;
+      padding: 0.5rem;
+      border-radius: 16px;
+    }
+
+    .header h1 {
+      font-weight: 600;
+      font-size: 1.9rem;
+      letter-spacing: -0.02em;
+      color: #0b2b44;
+    }
+
+    .header span {
+      background: #d4e2f0;
+      color: #1a4b77;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.2rem 0.9rem;
+      border-radius: 30px;
+      margin-left: 0.3rem;
+    }
+
+    .sub {
+      color: #3e5e7a;
+      margin-bottom: 2.2rem;
+      border-left: 4px solid #3b82f6;
+      padding-left: 1.2rem;
+      font-weight: 400;
+      font-size: 1rem;
+      background: #f0f5fb;
+      border-radius: 0 12px 12px 0;
+      padding: 0.8rem 1.4rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .sub i {
+      color: #2563eb;
+      font-size: 1.1rem;
+    }
+
+    .upload-area {
+      background: #fafcff;
+      border: 2px dashed #b8d1e9;
+      border-radius: 28px;
+      padding: 2.2rem 1.8rem;
+      text-align: center;
+      transition: 0.15s;
+      margin-bottom: 2.5rem;
+      cursor: pointer;
+    }
+
+    .upload-area:hover {
+      border-color: #3b82f6;
+      background: #f2f8ff;
+    }
+
+    .upload-area i {
+      font-size: 2.8rem;
+      color: #2b6eb0;
+      background: #e1edfa;
+      padding: 0.8rem;
+      border-radius: 60px;
+      margin-bottom: 0.5rem;
+    }
+
+    .upload-area h3 {
+      font-weight: 500;
+      color: #1a3d5e;
+      margin-bottom: 0.3rem;
+    }
+
+    .upload-area p {
+      color: #5a7b98;
+      font-size: 0.9rem;
+    }
+
+    #fileInput {
+      display: none;
+    }
+
+    .file-preview {
+      background: #f2f7fd;
+      border-radius: 40px;
+      padding: 0.8rem 1.8rem;
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin: 1.5rem 0 2rem 0;
+      border: 1px solid #d4e2f0;
+    }
+
+    .file-preview.show {
+      display: flex;
+    }
+
+    .file-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .file-info i {
+      font-size: 1.8rem;
+      color: #c44536;
+    }
+
+    .file-info .name {
+      font-weight: 500;
+      color: #0b2b44;
+      word-break: break-all;
+    }
+
+    .file-info .size {
+      font-size: 0.8rem;
+      color: #4a6a86;
+      background: #dce8f2;
+      padding: 0.2rem 0.9rem;
+      border-radius: 40px;
+    }
+
+    .action-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      border: none;
+      background: white;
+      padding: 0.6rem 1.4rem;
+      border-radius: 60px;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: 0.15s;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+      border: 1px solid transparent;
+    }
+
+    .btn-primary {
+      background: #1e4f8a;
+      color: white;
+      border: 1px solid #1a3f6e;
+    }
+
+    .btn-primary:hover {
+      background: #143a62;
+      transform: scale(0.97);
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 1px solid #b8cfe0;
+      color: #1e3d5a;
+    }
+
+    .btn-outline:hover {
+      background: #e5eff9;
+      border-color: #7fa1c4;
+    }
+
+    .btn-success {
+      background: #0f7b3a;
+      color: white;
+      border: 1px solid #0d632f;
+    }
+
+    .btn-success:hover {
+      background: #0b5f2d;
+    }
+
+    .btn-danger {
+      background: #b13e3e;
+      color: white;
+      border: 1px solid #922f2f;
+    }
+
+    .btn-danger:hover {
+      background: #8f2f2f;
+    }
+
+    .download-section {
+      margin-top: 1.2rem;
+      padding: 1.8rem 0 0.5rem 0;
+      border-top: 2px solid #e6eef7;
+    }
+
+    .download-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .download-header h2 {
+      font-weight: 500;
+      font-size: 1.3rem;
+      color: #1a3d5e;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .download-header h2 i {
+      color: #2563eb;
+    }
+
+    .shared-link-box {
+      background: #eef5fc;
+      border-radius: 60px;
+      padding: 0.5rem 1.4rem;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin: 0.8rem 0 0.5rem 0;
+      border: 1px solid #c7d9ec;
+    }
+
+    .shared-link-box i {
+      color: #2a5f8a;
+      font-size: 1.1rem;
+    }
+
+    .shared-link-box .link-text {
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      background: white;
+      padding: 0.2rem 1rem;
+      border-radius: 40px;
+      color: #0b2b44;
+      font-size: 0.9rem;
+      word-break: break-all;
+      flex: 1;
+      border: 1px solid #d0dfed;
+    }
+
+    .status-message {
+      font-size: 0.9rem;
+      color: #2563eb;
+      background: #e1edfa;
+      padding: 0.3rem 1.2rem;
+      border-radius: 60px;
+      display: inline-block;
+      margin-top: 0.5rem;
+    }
+
+    .viewer-area {
+      background: #fafdff;
+      border-radius: 24px;
+      padding: 1.2rem 1.5rem;
+      margin: 1.5rem 0 1rem 0;
+      border: 1px solid #dde8f2;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .viewer-area .pdf-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .pdf-meta span {
+      background: #dce8f2;
+      padding: 0.2rem 1.2rem;
+      border-radius: 40px;
+      font-size: 0.8rem;
+      color: #1a3d5e;
+    }
+
+    .empty-state {
+      color: #6b8aa8;
+      padding: 1.2rem 0 0.6rem 0;
+      font-style: italic;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .empty-state i {
+      color: #8dafce;
+    }
+
+    footer {
+      margin-top: 2rem;
+      font-size: 0.8rem;
+      color: #819bb3;
+      text-align: center;
+      border-top: 1px solid #e2ecf5;
+      padding-top: 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    footer i {
+      margin-right: 4px;
+    }
+
+    .flex-center {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+  </style>
+</head>
+<body>
+<div class="card" id="app">
+  <div class="header">
+    <i class="fas fa-file-pdf"></i>
+    <h1>DocShare</h1>
+    <span>v1</span>
+  </div>
+
+  <div class="sub">
+    <i class="fas fa-link"></i>
+    <span>Share one PDF · anyone with the link can view & download</span>
+  </div>
+
+  <!-- UPLOAD AREA -->
+  <div class="upload-area" id="uploadArea">
+    <i class="fas fa-cloud-upload-alt"></i>
+    <h3>Upload a PDF document</h3>
+    <p>Click or drag & drop · only PDF files</p>
+    <input type="file" id="fileInput" accept=".pdf,application/pdf">
+  </div>
+
+  <!-- FILE PREVIEW (visible after upload) -->
+  <div class="file-preview" id="filePreview">
+    <div class="file-info">
+      <i class="fas fa-file-pdf"></i>
+      <span class="name" id="fileName">document.pdf</span>
+      <span class="size" id="fileSize">0 KB</span>
+    </div>
+    <div class="action-group">
+      <button class="btn btn-outline" id="removeFileBtn"><i class="fas fa-times"></i> Remove</button>
+      <button class="btn btn-primary" id="uploadBtn"><i class="fas fa-upload"></i> Publish</button>
+    </div>
+  </div>
+
+  <!-- LIVE DOCUMENT VIEWER / DOWNLOAD SECTION -->
+  <div class="download-section" id="downloadSection">
+    <div class="download-header">
+      <h2><i class="fas fa-eye"></i> Published document</h2>
+      <span id="statusBadge" class="status-message"><i class="fas fa-circle" style="color: #10b981; font-size: 0.6rem; margin-right: 6px;"></i> Live</span>
+    </div>
+
+    <!-- viewer card -->
+    <div class="viewer-area" id="viewerArea">
+      <div class="pdf-meta">
+        <span id="viewerFileName"><i class="far fa-file-pdf"></i> No document</span>
+        <span id="viewerFileSize">—</span>
+      </div>
+      <div id="pdfPlaceholder" class="empty-state">
+        <i class="fas fa-info-circle"></i> Upload a PDF and it will appear here for everyone.
+      </div>
+      <div id="pdfDownloadWrapper" style="display: none; margin-top: 0.6rem;">
+        <button class="btn btn-success" id="downloadBtn"><i class="fas fa-download"></i> Download PDF</button>
+        <span style="margin-left: 1rem; font-size: 0.8rem; color: #3d6b96;"><i class="fas fa-share-alt"></i> Anyone with the link can download</span>
+      </div>
+    </div>
+
+    <!-- shareable link (simulated) -->
+    <div class="shared-link-box">
+      <i class="fas fa-link"></i>
+      <span class="link-text" id="shareLinkDisplay">https://docshare.example.com/view/abc123</span>
+      <button class="btn btn-outline" id="copyLinkBtn" style="padding: 0.3rem 1rem;"><i class="far fa-copy"></i> Copy</button>
+    </div>
+  </div>
+
+  <footer>
+    <span><i class="far fa-clock"></i> Instant sharing · no sign‑up</span>
+    <span><i class="fas fa-lock-open"></i> public read & download</span>
+  </footer>
+</div>
+
+<script>
+  (function() {
+    // ----- state -----
+    let uploadedFile = null;        // actual File object
+    let fileURL = null;            // blob URL for download / viewer
+
+    // DOM elements
+    const uploadArea = document.getElementById('uploadArea');
+    const fileInput = document.getElementById('fileInput');
+    const filePreview = document.getElementById('filePreview');
+    const fileNameSpan = document.getElementById('fileName');
+    const fileSizeSpan = document.getElementById('fileSize');
+    const removeFileBtn = document.getElementById('removeFileBtn');
+    const uploadBtn = document.getElementById('uploadBtn');
+
+    const viewerFileName = document.getElementById('viewerFileName');
+    const viewerFileSize = document.getElementById('viewerFileSize');
+    const pdfPlaceholder = document.getElementById('pdfPlaceholder');
+    const pdfDownloadWrapper = document.getElementById('pdfDownloadWrapper');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const shareLinkDisplay = document.getElementById('shareLinkDisplay');
+    const copyLinkBtn = document.getElementById('copyLinkBtn');
+    const statusBadge = document.getElementById('statusBadge');
+
+    // helper: format bytes
+    function formatBytes(bytes) {
+      if (bytes === 0) return '0 Bytes';
+      const k = 1024;
+      const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+    }
+
+    // reset file preview & viewer
+    function resetFileState() {
+      // revoke old blob URL to free memory
+      if (fileURL) {
+        URL.revokeObjectURL(fileURL);
+        fileURL = null;
+      }
+      uploadedFile = null;
+      filePreview.classList.remove('show');
+      fileInput.value = '';
+      // reset viewer
+      viewerFileName.innerHTML = `<i class="far fa-file-pdf"></i> No document`;
+      viewerFileSize.textContent = '—';
+      pdfPlaceholder.style.display = 'flex';
+      pdfDownloadWrapper.style.display = 'none';
+      // reset status
+      statusBadge.innerHTML = `<i class="fas fa-circle" style="color: #f59e0b; font-size: 0.6rem; margin-right: 6px;"></i> No document`;
+      // clear download link
+      if (downloadBtn) {
+        downloadBtn.removeAttribute('download');
+        downloadBtn.href = '#';
+      }
+      shareLinkDisplay.textContent = 'https://docshare.example.com/view/abc123'; // static demo
+    }
+
+    // display file in preview & viewer (without publishing)
+    function displayFile(file) {
+      if (!file) return;
+      // revoke old URL if any
+      if (fileURL) {
+        URL.revokeObjectURL(fileURL);
+        fileURL = null;
+      }
+      uploadedFile = file;
+      // preview
+      fileNameSpan.textContent = file.name;
+      fileSizeSpan.textContent = formatBytes(file.size);
+      filePreview.classList.add('show');
+
+      // create blob URL for viewer/download
+      fileURL = URL.createObjectURL(file);
+
+      // update viewer section (preview mode, not published yet)
+      viewerFileName.innerHTML = `<i class="far fa-file-pdf"></i> ${file.name}`;
+      viewerFileSize.textContent = formatBytes(file.size);
+      pdfPlaceholder.style.display = 'none';
+      pdfDownloadWrapper.style.display = 'flex';
+      // set download link
+      downloadBtn.href = fileURL;
+      downloadBtn.download = file.name || 'document.pdf';
+      // status
+      statusBadge.innerHTML = `<i class="fas fa-circle" style="color: #f59e0b; font-size: 0.6rem; margin-right: 6px;"></i> Ready to publish`;
+
+      // update share link (simulate unique link)
+      const fakeId = Math.random().toString(36).substring(2, 8);
+      shareLinkDisplay.textContent = `https://docshare.example.com/view/${fakeId}`;
+    }
+
+    // ----- "publish" action: makes document live (same as display, but with "live" status)
+    function publishDocument() {
+      if (!uploadedFile) {
+        alert('Please upload a PDF first.');
+        return;
+      }
+      // we already have fileURL and preview; just update status to live
+      statusBadge.innerHTML = `<i class="fas fa-circle" style="color: #10b981; font-size: 0.6rem; margin-right: 6px;"></i> Live · shared`;
+      // ensure viewer shows the file
+      pdfPlaceholder.style.display = 'none';
+      pdfDownloadWrapper.style.display = 'flex';
+      // keep download link fresh
+      if (fileURL) {
+        downloadBtn.href = fileURL;
+        downloadBtn.download = uploadedFile.name || 'document.pdf';
+      }
+      // simulate unique link update
+      const newId = Math.random().toString(36).substring(2, 10);
+      shareLinkDisplay.textContent = `https://docshare.example.com/view/${newId}`;
+    }
+
+    // ----- event listeners -----
+
+    // click on upload area triggers file input
+    uploadArea.addEventListener('click', function(e) {
+      if (e.target.tagName !== 'INPUT') {
+        fileInput.click();
+      }
+    });
+
+    // drag and drop (simple)
+    uploadArea.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadArea.style.borderColor = '#2563eb';
+      uploadArea.style.background = '#e5eff9';
+    });
+    uploadArea.addEventListener('dragleave', () => {
+      uploadArea.style.borderColor = '#b8d1e9';
+      uploadArea.style.background = '#fafcff';
+    });
+    uploadArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadArea.style.borderColor = '#b8d1e9';
+      uploadArea.style.background = '#fafcff';
+      const files = e.dataTransfer.files;
+      if (files.length > 0) {
+        const file = files[0];
+        if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
+          displayFile(file);
+        } else {
+          alert('Please drop a PDF file.');
+        }
+      }
+    });
+
+    // file input change
+    fileInput.addEventListener('change', function() {
+      if (this.files && this.files.length > 0) {
+        const file = this.files[0];
+        if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
+          displayFile(file);
+        } else {
+          alert('Only PDF files are supported.');
+          this.value = '';
+        }
+      }
+    });
+
+    // remove file
+    removeFileBtn.addEventListener('click', function() {
+      resetFileState();
+    });
+
+    // upload / publish button
+    uploadBtn.addEventListener('click', function() {
+      if (!uploadedFile) {
+        alert('Please select a PDF file first.');
+        return;
+      }
+      publishDocument();
+    });
+
+    // download button – already set in displayFile, but we keep it safe
+    // copy link
+    copyLinkBtn.addEventListener('click', function() {
+      const linkText = shareLinkDisplay.textContent;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(linkText).then(() => {
+          const original = copyLinkBtn.innerHTML;
+          copyLinkBtn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+          setTimeout(() => { copyLinkBtn.innerHTML = original; }, 2000);
+        }).catch(() => {
+          fallbackCopy(linkText);
+        });
+      } else {
+        fallbackCopy(linkText);
+      }
+    });
+
+    function fallbackCopy(text) {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+      const original = copyLinkBtn.innerHTML;
+      copyLinkBtn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+      setTimeout(() => { copyLinkBtn.innerHTML = original; }, 2000);
+    }
+
+    // reset on page load
+    resetFileState();
+
+    // extra: if user wants to re-upload after publish, we keep it consistent
+    // we also allow clicking on the file preview to re-trigger (but we keep it simple)
+
+    // simulate that someone visits the link: viewer sees the same document
+    // all logic is local; the "link" is representative.
+    console.log('DocShare ready – upload a PDF and share the link!');
+  })();
+</script>
+</body>
+</html>
